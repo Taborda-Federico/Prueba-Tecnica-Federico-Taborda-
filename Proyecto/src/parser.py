@@ -20,7 +20,7 @@ class BaseParser(ABC):
         text= re.sub(r'http[s]?://\S+', '', text)
         text =re.sub(r'\n+', '\n',text)
         
-        text =re.sub(r'[^\w\s\.\,\!\?\-\:\;\(\)\n]', '',text)
+        text =re.sub(r'[^\w\s\.\,\!\?\-\:\;\(\)\n\*]', '',text)
         text = re.sub(r' +', ' ', text)
         text = text.lower()
         return text.strip()
@@ -74,11 +74,10 @@ class pdfParser(BaseParser):
         doc.close()
         texto = re.sub(r'\n(\d+\.\d+\s+.*?)(?=\n)', r'\n\n--- SECCIÓN: \1 ---\n', texto_completo)
         palabras_clave = r'(Posibles causas|Acciones recomendadas|Verificaciones básicas|Acción recomendada)'
-        
-        texto = re.sub(fr'\n{palabras_clave}', r'\n\n**\1:**\n', texto, flags=re.IGNORECASE)
-        
+        texto = re.sub(r'\n{3,}', '\n\n', texto)
         texto = re.sub(r'(\w+)-\n(\w+)', r'\1\2', texto)
         texto = re.sub(r'\n{3,}', '\n\n', texto)
+
         return self.clean_text(texto)
 
 class documentFactory:
