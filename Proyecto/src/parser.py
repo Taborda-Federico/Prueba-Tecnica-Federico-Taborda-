@@ -1,6 +1,6 @@
 ##Voy a hacer un loader por cada extension 
 from abc import ABC, abstractmethod
-import strip_markdown 
+import fitz
 import re
 import json
 
@@ -63,8 +63,23 @@ class jsParser(BaseParser):
     
 class pdfParser(BaseParser):
     def parse(self, filepath):
-        return super().parser(filepath)
 
+        doc = fitz.open(filepath)
+        texto_completo = ""
+        for numero_pagina, pagina in enumerate(doc):
+            texto_pag = pagina.get_text("text")
+            texto_completo += f"\n\n Inicio de pagina {numero_pagina +1}"
+            texto_completo += texto_pag
+            texto_completo += f"\n\n Fin de pagina {numero_pagina +1}"
+        doc.close()
+        texto = re.sub(r'\n(\d+\.\d+\s+.*?)(?=\n)', r'\n\n--- SECCIÓN: \1 ---\n', texto_completo)
+        palabras_clave = r'(Posibles causas|Acciones recomendadas|Verificaciones básicas|Acción recomendada)'
+        
+        texto = re.sub(fr'\n{palabras_clave}', r'\n\n**\1:**\n', texto, flags=re.IGNORECASE)
+        
+        texto = re.sub(r'(\w+)-\n(\w+)', r'\1\2', texto)
+        texto = re.sub(r'\n{3,}', '\n\n', texto)
+        return self.clean_text(texto)
 
 class documentFactory:
 
