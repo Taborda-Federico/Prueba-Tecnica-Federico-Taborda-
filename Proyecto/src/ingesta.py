@@ -73,4 +73,4 @@ def main():
       
     litsParse = extractionDir('./Docs')
 
-    listClean
+    listClean = cleanText(litsParse)
