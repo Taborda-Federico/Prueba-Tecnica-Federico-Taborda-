@@ -7,6 +7,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from contextlib import asynccontextmanager
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
 import os
 
 embeddings_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -53,17 +54,27 @@ def promtFuction(context:str, pregutna:str):
         )),
         ("user", "DOCUMENTACIÓN DE REFERENCIA:\n{contexto}\n\n---\nPREGUNTA DEL USUARIO: {pregunta}")
     ])
-
+    
     try:
         llm= ChatOpenAI(model="gpt-4o", temperature=0)
         chain = prompt | llm
         entradas = {'contexto':context, "pregunta": pregutna}
         response = chain.invoke(entradas) 
         return response.content
-
     except Exception as e:
         print(e)
-
+    
+   
+    try:
+            llm_local=ChatOllama(model="llama3", temperature=0)
+            chain_local= prompt | llm_local
+    
+            response = chain_local.invoke({'contexto':context, "pregunta": pregutna}) 
+            return response
+    
+    except Exception as e:
+        print(e)
+        return response
         
 @app.post("/preguntar")
 def nuevaPregunta(playload: BasePregunta):

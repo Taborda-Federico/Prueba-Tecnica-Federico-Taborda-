@@ -1,0 +1,98 @@
+{
+  "name": "Federico_llm_local",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        496,
+        144
+      ],
+      "id": "2f5594ca-eaab-4170-b604-fd35563a57d1",
+      "name": "When chat message received",
+      "webhookId": "ffd97120-f00d-4e5a-925b-be442430bb7e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/preguntar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "pregunta",
+              "value": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        768,
+        128
+      ],
+      "id": "1df3e96e-e59a-4e23-95c4-b01a769d483b",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "={{ $json['chunks similares'].content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        144
+      ],
+      "id": "325e4eb2-e70f-4ea1-86b9-f7b1a3015184",
+      "name": "Chat1",
+      "webhookId": "294706d7-8701-4a54-9fd8-299e631e3bb8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7e00d43c-a1b1-449a-bda7-40b4f6b1390c",
+  "meta": {
+    "instanceId": "8fd6fee8e20c5993941313593c82f9aa062f6f2f0ada2cdd9ca00c6add1c85e4"
+  },
+  "id": "j5uAWiORoBgNJQ9G",
+  "tags": []
+}
