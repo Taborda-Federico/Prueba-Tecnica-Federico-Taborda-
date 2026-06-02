@@ -8,6 +8,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 ##from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 load_dotenv()
 api_key = os.getenv('OPENAI_API_KEY')
@@ -28,13 +29,16 @@ def extractionDir(doc):
 					metadata={"source": currentExten}
 				)
 				listDocs.append(nuevo_doc)
+	
 			except ValueError as e: 
 				print(f"Saltando archivo: {e}")
+
 	return listDocs
 
 def cleanText(listdoc):
    
-## System : quien sera nuestra ia y human es lo que le pediremos en lenguaje natural
+	print("Texto parseado, pasamos a la fase de limpieza")
+	## System : quien sera nuestra ia y human es lo que le pediremos en lenguaje natural
 	prompt = ChatPromptTemplate.from_messages(
 		 
 		[ (
@@ -59,9 +63,24 @@ def cleanText(listdoc):
 		for i, response in enumerate(responses):
 			listdoc[i].page_content = response.content 
 		return listdoc
+	
 	except Exception as e:
-		print(f"Se produjo un error:{e}")
-		return  listdoc
+		print(f"OpenAI fallo, Error: {e}. Lanzamiento locar ..")
+		
+		
+	try:
+		llm_local=ChatOllama(model="llama3", tempurature=0)
+		chain_local= prompt | llm_local
+		llm_local=chain_local.invoke
+		for doc in listdoc:
+			res_local= chain_local.invoke({"textoCrudo": doc.page_content})
+			doc.page_content = res_local.content
+		print("LLM local funcionando, eliminando ruido localmente ")
+	
+		return listdoc
+	except Exception as e_local:
+		print(f"Todo falló. Usando texto original sin limpieza. Error local: {e_local}")
+		return listdoc
 def split_text(listText):
 	"""
 		Aca se diviran los archivos grandes, en chunks mas paqueños 
@@ -110,4 +129,4 @@ def main():
 	print('Creado correctamente chromaDB')
 
 if __name__ == "__main__":
-    main()
+	main()
