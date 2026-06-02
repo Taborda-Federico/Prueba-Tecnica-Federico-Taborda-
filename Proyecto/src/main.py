@@ -18,7 +18,7 @@ class BasePregunta(BaseModel):
         description= "Consulta tecnica del usuario sobre el siestema "
     )
 
-@app.post("api/buscar")
+@app.post("/preguntar")
 def nuevaPregunta(pregunta: BasePregunta):
     		
     try:    
