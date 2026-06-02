@@ -1,16 +1,34 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException 
 from pydantic import BaseModel, EmailStr, Field
 from ingesta import main
+from ingesta import main as ejecutar_ingesta
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
+from contextlib import asynccontextmanager
+import os
 
-app=FastAPI()
 embeddings_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-db = Chroma(
-    persist_directory="./chroma_db",
-    embedding_function = embeddings_model
-)
+db=None
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    global db
+    ruta_db ="./chroma_db"
+    if not os.path.exists(ruta_db)or not os.listdir(ruta_db):
+        print("No se encontro base de datos. creendo una ...")
+        ejecutar_ingesta()
+    else:
+        print("Exite una base de datos")
+    embeddings_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    db= Chroma(
+        persist_directory =ruta_db,
+        embedding_function= embeddings_model
+    )
+    print("Base de datos conectada")
+    yield
+    print("Apagando Api ")
+
+app = FastAPI(lifespan=lifespan)
 class BasePregunta(BaseModel):
     pregunta:str = Field(
         min_length=1,
@@ -19,14 +37,14 @@ class BasePregunta(BaseModel):
     )
 
 @app.post("/preguntar")
-def nuevaPregunta(pregunta: BasePregunta):
+def nuevaPregunta(playload: BasePregunta):
     		
     try:    
       
 
 
         
-        docs =db.similarity_search(pregunta.pergunta, k=3)
+        docs =db.similarity_search(playload.pregunta, k=3)
 
         if not docs:
             return {

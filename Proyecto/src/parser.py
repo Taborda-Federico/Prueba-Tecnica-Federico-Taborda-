@@ -18,9 +18,9 @@ class BaseParser(ABC):
         Limpieza de textos 
         """
         text= re.sub(r'http[s]?://\S+', '', text)
-        text =re.sub(r'\n+', '\n',text)
+        text = re.sub(r'\n{3,}', '\n\n', text)
         
-        text =re.sub(r'[^\w\s\.\,\!\?\-\:\;\(\)\n\*]', '',text)
+        text = re.sub(r'[^\w\s\.\,\!\?\-\:\;\(\)\n\*]', '', text)
         text = re.sub(r' +', ' ', text)
         text = text.lower()
         return text.strip()
