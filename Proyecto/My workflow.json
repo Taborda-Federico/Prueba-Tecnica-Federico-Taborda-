@@ -1,0 +1,147 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cecac095-e268-45d4-a72c-1a6a36dee1cb",
+      "name": "When chat message received",
+      "webhookId": "0a956294-726f-4e63-a3a3-c36641bfd65f"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/preguntar",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "pregunta",
+              "value": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d48e6554-2561-432c-9a50-257ec82540e8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Eres el asistente técnico de MineCatalog. Tu objetivo es ayudar al usuario basándote en la documentación que se te proporcionará. Sé amable y directo. Si la solución está en el texto, explícala paso a paso."
+            },
+            {
+              "content": "=DOCUMENTACIÓN TÉCNICA:\n{{ $node[\"HTTP Request\"].json[\"chunks similares\"].join(\"\\n\\n\") }}\n\nFUENTES:\n{{ $node[\"HTTP Request\"].json[\"fuentes\"].join(\", \") }}\n\n---\nPREGUNTA DEL USUARIO:\n{{ $node[\"When chat message received\"].json[\"chatInput\"] }}\n\nRespuesta:"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        16
+      ],
+      "id": "9fce7627-f693-4552-98f0-b956ff2c2da1",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "0bMjNgnY4p4iPHKm",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "message": "= {{$json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        16
+      ],
+      "id": "cd62fa67-32bb-433c-aa86-23738e101792",
+      "name": "Chat",
+      "webhookId": "294706d7-8701-4a54-9fd8-299e631e3bb8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3d64ae93-a88c-477f-ba0b-a5548253d316",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fd6fee8e20c5993941313593c82f9aa062f6f2f0ada2cdd9ca00c6add1c85e4"
+  },
+  "id": "zBuMXgul4A7Sx0z3",
+  "tags": []
+}

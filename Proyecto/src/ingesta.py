@@ -69,9 +69,9 @@ def cleanText(listdoc):
 		
 		
 	try:
-		llm_local=ChatOllama(model="llama3", tempurature=0)
+		llm_local=ChatOllama(model="llama3", temperature=0)
 		chain_local= prompt | llm_local
-		llm_local=chain_local.invoke
+	
 		for doc in listdoc:
 			res_local= chain_local.invoke({"textoCrudo": doc.page_content})
 			doc.page_content = res_local.content
